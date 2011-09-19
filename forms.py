@@ -17,7 +17,7 @@ class Form(wtForm):
 
         class SigninHandler(RequestHandler):
             def get(self):
-                form = SigninForm(self.request.arguments)
+                form = SigninForm(self.request.arguments, locale_code=self.locale.code)
 
     """
     def __init__(self, formdata=None, obj=None, prefix='', locale_code='en_US', **kwargs):
