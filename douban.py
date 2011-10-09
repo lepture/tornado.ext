@@ -5,6 +5,7 @@ import logging
 import urllib
 
 from tornado.escape import xhtml_escape
+from tornado.httputil import url_concat
 from tornado.auth import httpclient, OAuthMixin
 
 class DoubanMixin(OAuthMixin):
@@ -58,8 +59,7 @@ class DoubanMixin(OAuthMixin):
             http.fetch(url, method="POST", headers=headers,
                     body=post_args, callback=callback)
         else:
-            url += "?" + urllib.urlencode(args)
-            http.fetch(url, callback=callback)
+            http.fetch(url_concat(url, args), callback=callback)
 
     def douban_saying(self, callback, access_token=None, content=None, **args):
         """ douban miniblog
