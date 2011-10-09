@@ -1,0 +1,3 @@
+[submodule "third"]
+	path = third
+	url = git@github.com:lepture/tornado.third.git

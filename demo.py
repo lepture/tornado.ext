@@ -8,8 +8,8 @@ from tornado.ioloop import IOLoop
 from tornado.httpserver import HTTPServer
 from tornado import web
 
-from douban import DoubanMixin
-from renren import RenrenGraphMixin
+from third import DoubanMixin
+from third import RenrenGraphMixin
 
 _app_cache = {}
 
