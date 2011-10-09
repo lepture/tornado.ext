@@ -70,7 +70,7 @@ class DoubanMixin(OAuthMixin):
                 @tornado.web.asynchronous
                 def get(self):
                     self.douban_saying(self.async_callback(self._on_saying),
-                            access_token=user["access_token"], "test content")
+                            access_token=user["access_token"], content="test content")
 
                 def _on_saying(self, xml):
                     if not xml:
