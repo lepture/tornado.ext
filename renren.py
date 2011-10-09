@@ -24,13 +24,29 @@ class RenrenGraphMixin(object):
         args.update(all_args)
         self.redirect(url_concat(self._OAUTH_AUTHORIZE_URL, args))
     
-    def get_authenticated_user(self, callback):
-        #TODO
-        pass
-
     def renren_request(self, path, args):
         #TODO
         pass
+
+    def get_authenticated_user(self, callback, redirect_uri):
+        """
+        class RenrenHandler(tornado.web.RequestHandler, RenrenGraphMixin):
+            @tornado.web.asynchronous
+            def get(self):
+                if self.get_argument("code", None):
+                    self.get_authenticated_user(self.async_callback(self._on_auth))
+                    return
+                self.authorize_redirect()
+            
+            def _on_auth(self, user):
+                if not user:
+                    raise tornado.web.HTTPError(500, "Renren auth failed")
+                # do something else
+                self.finish()
+        """
+
+        code = self.get_argument('code')
+        return self.get_access_token(callback, code, 'code', redirect_uri)
 
     def get_access_token(self, callback, code, grant_type='code', redirect_uri=None):
         if grant_type == 'refresh_token':
@@ -51,8 +67,7 @@ class RenrenGraphMixin(object):
 
         callback = self.async_callback(self._on_get_access_token, callback)
         http = httpclient.AsyncHTTPClient()
-        http.fetch(self._OAUTH_ACCESS_TOKEN_URL, method="POST",
-                   body=urllib.urlencode(args), callback=callback)
+        http.fetch(url_concat(self._OAUTH_ACCESS_TOKEN_URL, args), callback=callback)
 
     def _on_get_access_token(self, callback, response):
         if response.error:
@@ -71,7 +86,7 @@ class RenrenGraphMixin(object):
     def _oauth_consumer_token(self):
         self.require_setting("renren_client_id", "Renren Client ID")
         self.require_setting("renren_client_secret", "Renren Client Secret")
-        token = dict(key=self.settings["client_id"],
-                     secret=self.settings["client_secret"])
+        token = dict(client_id=self.settings["renren_client_id"],
+                     client_secret=self.settings["renren_client_secret"])
         return token
 

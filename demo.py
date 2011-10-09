@@ -9,8 +9,11 @@ from tornado.httpserver import HTTPServer
 from tornado import web
 
 from douban import DoubanMixin
+from renren import RenrenGraphMixin
 
 _app_cache = {}
+
+host = 'http://dev.example.com'
 
 class InstanceCache(object):
     def clear(self):
@@ -68,13 +71,13 @@ class DoubanHandler(BaseHandler, DoubanMixin):
         if self.get_argument("oauth_token", None):
             self.get_authenticated_user(self.async_callback(self._on_auth))
             return
-        self.authorize_redirect('http://localhost:8000/douban')
+        self.authorize_redirect(host + '/douban')
     
     @web.asynchronous
     def post(self):
         user = self.cache.get('douban')
         if not user:
-            return self.authorize_redirect('http://localhost:8000/douban')
+            return self.authorize_redirect(host + '/douban')
 
         content = self.get_argument('content')
         self.douban_saying(self.async_callback(self._on_saying),
@@ -102,10 +105,33 @@ class DoubanHandler(BaseHandler, DoubanMixin):
         self.finish()
 
 
+class RenrenHandler(BaseHandler, RenrenGraphMixin):
+    @web.asynchronous
+    def get(self):
+        renren = self.cache.get('renren')
+        if renren:
+            self.write(renren)
+            self.finish()
+            return
+
+        if self.get_argument('code', None):
+            self.get_authenticated_user(self.async_callback(self._on_auth), host+'/renren')
+            return
+        self.authorize_redirect(host + '/renren')
+
+    def _on_auth(self, user):
+        if not user:
+            raise web.HTTPError(500, "Renren auth failed")
+        self.cache.set('renren', user)
+        self.write(user)
+        self.finish()
+
+
 class Application(web.Application):
     def __init__(self):
         handlers = [
             ('/douban', DoubanHandler),
+            ('/renren', RenrenHandler),
         ]
         settings = dict(
             debug = True,
@@ -115,6 +141,8 @@ class Application(web.Application):
 
             douban_consumer_key = '',
             douban_consumer_secret = '',
+            renren_client_id = 'fee11992a4ac4caabfca7800d233f814',
+            renren_client_secret = 'a617e78710454b12aab68576382e8e14',
         )
         web.Application.__init__(self, handlers, **settings)
         Application.cache = InstanceCache()
