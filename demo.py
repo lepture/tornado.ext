@@ -10,7 +10,7 @@ from tornado import web
 from tornado import gen
 
 from third import DoubanMixin
-from third import RenrenGraphMixin
+from third import RenrenGraphMixin, RenrenRestMixin
 
 _app_cache = {}
 
@@ -125,7 +125,6 @@ class RenrenHandler(BaseHandler, RenrenGraphMixin):
         self.cache.set('renren', user)
         self.write(user)
         self.finish()
-
 
 class Application(web.Application):
     def __init__(self):
