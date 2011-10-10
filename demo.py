@@ -7,6 +7,7 @@ from tornado.options import options
 from tornado.ioloop import IOLoop
 from tornado.httpserver import HTTPServer
 from tornado import web
+from tornado import gen
 
 from third import DoubanMixin
 from third import RenrenGraphMixin
@@ -107,6 +108,7 @@ class DoubanHandler(BaseHandler, DoubanMixin):
 
 class RenrenHandler(BaseHandler, RenrenGraphMixin):
     @web.asynchronous
+    @gen.engine
     def get(self):
         renren = self.cache.get('renren')
         if renren:
@@ -114,12 +116,10 @@ class RenrenHandler(BaseHandler, RenrenGraphMixin):
             self.finish()
             return
 
-        if self.get_argument('code', None):
-            self.get_authenticated_user(self.async_callback(self._on_auth), host+'/renren')
-            return
-        self.authorize_redirect(host + '/renren')
-
-    def _on_auth(self, user):
+        self.get_authenticated_user(
+            redirect_uri=host+'/renren',
+            callback=(yield gen.Callback('RenrenHandler.get')))
+        user = yield gen.Wait('RenrenHandler.get')
         if not user:
             raise web.HTTPError(500, "Renren auth failed")
         self.cache.set('renren', user)
