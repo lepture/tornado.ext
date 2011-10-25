@@ -97,7 +97,7 @@ class DjangoQuery(Query):
                 column = column.desc()
             args[idx] = column
 
-        q = super(DjangoQueryMixin, self).order_by(*args)
+        q = super(DjangoQuery, self).order_by(*args)
         for join in joins_needed:
             q = q.join(join)
         return q
