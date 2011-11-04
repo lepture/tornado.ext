@@ -30,23 +30,23 @@ class DjangoQuery(Query):
         in front.
     """
     _underscore_operators = {
-        'gt':           operators.gt,
-        'lte':          operators.lt,
-        'gte':          operators.ge,
-        'le':           operators.le,
-        'contains':     operators.contains_op,
-        'in':           operators.in_op,
-        'exact':        operators.eq,
-        'iexact':       operators.ilike_op,
-        'startswith':   operators.startswith_op,
-        'istartswith':  lambda c, x: c.ilike(x.replace('%', '%%') + '%'),
-        'iendswith':    lambda c, x: c.ilike('%' + x.replace('%', '%%')),
-        'endswith':     operators.endswith_op,
-        'isnull':       lambda c, x: x and c != None or c == None,
-        'range':        operators.between_op,
-        'year':         lambda c, x: extract('year', c) == x,
-        'month':        lambda c, x: extract('month', c) == x,
-        'day':          lambda c, x: extract('day', c) == x
+        'gt': operators.gt,
+        'lt': operators.lt,
+        'gte': operators.ge,
+        'lte': operators.le,
+        'contains': operators.contains_op,
+        'in': operators.in_op,
+        'exact': operators.eq,
+        'iexact': operators.ilike_op,
+        'startswith': operators.startswith_op,
+        'istartswith': lambda c, x: c.ilike(x.replace('%', '%%') + '%'),
+        'iendswith': lambda c, x: c.ilike('%' + x.replace('%', '%%')),
+        'endswith': operators.endswith_op,
+        'isnull': lambda c, x: x and c != None or c == None,
+        'range': operators.between_op,
+        'year': lambda c, x: extract('year', c) == x,
+        'month': lambda c, x: extract('month', c) == x,
+        'day': lambda c, x: extract('day', c) == x
     }
 
     def filter_by(self, **kwargs):
