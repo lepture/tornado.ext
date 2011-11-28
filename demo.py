@@ -133,14 +133,14 @@ class WeiboHandler(BaseHandler, WeiboMixin):
     def get(self):
         if self.get_argument("code", False):
             self.get_authenticated_user(
-                redirect_uri='http://127.0.0.1:8000/weibo',
-                client_id=self.settings["weibo_api_key"],
-                client_secret=self.settings["weibo_secret"],
+                redirect_uri=host + '/weibo',
+                client_id=self.settings["weibo_client_id"],
+                client_secret=self.settings["weibo_client_secret"],
                 code=self.get_argument("code"),
                 callback=self.async_callback(self._on_login))
             return
-        self.authorize_redirect(redirect_uri='http://127.0.0.1:8000/weibo',
-                                client_id=self.settings["weibo_api_key"],
+        self.authorize_redirect(redirect_uri=host + '/weibo',
+                                client_id=self.settings["weibo_client_id"],
                                 extra_params={"response_type": "code"})
 
     def _on_login(self, user):
@@ -166,8 +166,8 @@ class Application(web.Application):
             douban_consumer_secret = '',
             renren_client_id = 'fee11992a4ac4caabfca7800d233f814',
             renren_client_secret = 'a617e78710454b12aab68576382e8e14',
-            weibo_api_key = '',
-            weibo_secret = '',
+            weibo_client_id = '',
+            weibo_client_secret = '',
         )
         web.Application.__init__(self, handlers, **settings)
         Application.cache = InstanceCache()
