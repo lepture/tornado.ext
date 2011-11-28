@@ -11,6 +11,7 @@ from tornado import gen
 
 from third import DoubanMixin
 from third import RenrenGraphMixin, RenrenRestMixin
+from third import WeiboMixin
 
 _app_cache = {}
 
@@ -126,11 +127,34 @@ class RenrenHandler(BaseHandler, RenrenGraphMixin):
         self.write(user)
         self.finish()
 
+
+class WeiboHandler(BaseHandler, WeiboMixin):
+    @tornado.web.asynchronous
+    def get(self):
+        if self.get_argument("code", False):
+            self.get_authenticated_user(
+                redirect_uri='http://127.0.0.1:8000/weibo',
+                client_id=self.settings["weibo_api_key"],
+                client_secret=self.settings["weibo_secret"],
+                code=self.get_argument("code"),
+                callback=self.async_callback(self._on_login))
+            return
+        self.authorize_redirect(redirect_uri='http://127.0.0.1:8000/weibo',
+                                client_id=self.settings["weibo_api_key"],
+                                extra_params={"response_type": "code"})
+
+    def _on_login(self, user):
+        for k, v in user.iteritems():
+            self.write("%s : %s<br/>" % (k, v))
+        self.finish()
+
+
 class Application(web.Application):
     def __init__(self):
         handlers = [
             ('/douban', DoubanHandler),
             ('/renren', RenrenHandler),
+            ('/weibo', WeiboHandler),
         ]
         settings = dict(
             debug = True,
@@ -142,6 +166,8 @@ class Application(web.Application):
             douban_consumer_secret = '',
             renren_client_id = 'fee11992a4ac4caabfca7800d233f814',
             renren_client_secret = 'a617e78710454b12aab68576382e8e14',
+            weibo_api_key = '',
+            weibo_secret = '',
         )
         web.Application.__init__(self, handlers, **settings)
         Application.cache = InstanceCache()
