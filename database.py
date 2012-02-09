@@ -166,7 +166,7 @@ class SQLAlchemy(object):
         self.Model = self.create_model()
         if 'pool_recycle' in kwargs:
             # ping db, so that mysql won't goaway
-            PeriodicCallback(self._ping_db, kwargs['pool_recycle']).start()
+            PeriodicCallback(self._ping_db, kwargs['pool_recycle'] * 1000).start()
 
     def create_session(self):
         session = sessionmaker(bind=self.engine, query_cls=DjangoQuery)
