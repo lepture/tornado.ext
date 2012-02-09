@@ -12,11 +12,13 @@ from sqlalchemy.orm import joinedload, joinedload_all
 from sqlalchemy.orm.util import _entity_descriptor
 from sqlalchemy.util import to_list
 from sqlalchemy.sql import operators, extract
+from tornado.ioloop import PeriodicCallback
 
 """
 DjangoQuery From
 https://github.com/mitsuhiko/sqlalchemy-django-query
 """
+
 
 class DjangoQuery(Query):
     """Can be mixed into any Query class of SQLAlchemy and extends it to
@@ -128,7 +130,7 @@ class DjangoQuery(Query):
 
 
 class Model(object):
-    id = Column(Integer, primary_key=True) #primary key
+    id = Column(Integer, primary_key=True)  #primary key
 
     @declared_attr
     def __tablename__(cls):
@@ -145,22 +147,26 @@ class SQLAlchemy(object):
     """
     Example::
 
-        db = SQLAlchemy("sqlite:///bitch.sqlite", True)
+        db = SQLAlchemy("sqlite:///demo.sqlite", echo=True)
+        db = SQLAlchemy("mysql://user:pass@host:port/db", pool_recycle=3600)
 
         from sqlalchemy import Column, String
 
         class User(db.Model):
-            username = Column(String(16), unique=True, nullable=False, index=True)
+            username = Column(String(16), unique=True, nullable=False)
             password = Column(String(30), nullable=False)
 
         >>> db.create_db()
         >>> User.query.filter_by(username='yourname')
 
     """
-    def __init__(self, database, debug=False, **kwargs):
-        self.engine = create_engine(database, convert_unicode=True, echo=debug)
+    def __init__(self, database, **kwargs):
+        self.engine = create_engine(database, **kwargs)
         self.session = self.create_session()
         self.Model = self.create_model()
+        if 'pool_recycle' in kwargs:
+            # ping db, so that mysql won't goaway
+            PeriodicCallback(self._ping_db, kwargs['pool_recycle']).start()
 
     def create_session(self):
         session = sessionmaker(bind=self.engine, query_cls=DjangoQuery)
@@ -173,3 +179,6 @@ class SQLAlchemy(object):
 
     def create_db(self):
         return self.Model.metadata.create_all(self.engine)
+
+    def _ping_db(self):
+        self.session.execute('show variables')
